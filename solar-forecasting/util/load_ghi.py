@@ -7,6 +7,7 @@ def load():
     df = pd.read_csv('../data/GHI_DHI_Temp_Wind_20130101.csv.gz', compression='gzip',skiprows=1)
     df.index = pd.to_datetime(df['DATE (MM/DD/YYYY)'] + ' ' + df['MST'], format='%m/%d/%Y %H:%M')
     df.columns = [u'DATE (MM/DD/YYYY)', u'MST', u'AtmosphericAnalogKind.irradanceGlobalHorizontal',
+                  u'AtmosphericAnalogKind.irradanceDirectNormal',
                   u'AtmosphericAnalogKind.irradanceDiffuseHorizontal',
                   u'AtmosphericAnalogKind.ambientTemperature', u'AtmosphericAnalogKind.humidity',
                   u'AtmosphericAnalogKind.speed', u'AtmosphericAnalogKind.bearing']

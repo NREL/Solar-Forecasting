@@ -1,6 +1,5 @@
 # SRRL Data
 
-The d
 
 Data has been downloaded from https://midcdmz.nrel.gov/srrl_bms/ and placed in the file GHI_DHI_Temp_Wind_20130101.csv
 
@@ -14,6 +13,7 @@ These are the options selected on the site :
 - [x] Relative Humidity (Tower)
 - [x] Wind Speed (42')
 - [x] Wind Direction (42')
+- [x] Direct CH1
 - [x] Diffuse CM22 (vent/corr.)
 - [x] Selected 1-Min Data (ZIP Compressed)
 
