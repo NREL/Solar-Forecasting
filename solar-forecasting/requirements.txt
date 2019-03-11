@@ -1,4 +1,0 @@
-# enter requirements that aren't related to connecting to the messagebus here
-pandas
-influxdb
-gridappsd

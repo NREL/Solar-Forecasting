@@ -18,12 +18,11 @@ def load():
     client = DataFrameClient(host='localhost', port=8086)
 
     print("Delete database: " + dbname)
-    client.drop_database(dbname)
+    # client.drop_database(dbname)
 
     print("Create pandas DataFrame")
 
     print("Create database: " + dbname)
-    client.drop_database(dbname)
     client.create_database(dbname)
 
     client.switch_database(dbname)
