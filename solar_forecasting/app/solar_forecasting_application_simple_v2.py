@@ -1,5 +1,33 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# BSD 3-Clause License
+#
+# Copyright (c) 2019 Alliance for Sustainable Energy, LLC
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+#    list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its
+#    contributors may be used to endorse or promote products derived from
+#    this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 """
 Created on Wed Nov  7 11:36:00 2018
 
@@ -23,7 +51,7 @@ from sklearn.metrics import *
 from scipy import stats, integrate
 from pspi_simple_v2 import *
 import time
-
+from dateutil import tz
 """
 Code used to listen and get GHI observation goes here. It will listen for a
 date and time, along with a GHI observation. If one desires to use more input,
@@ -34,11 +62,11 @@ Time is in epoch. Timezone is eventually needed, and can be changed in the code.
 
 # How to plan for a 'None' in the middle of the day?
 # JSON input goes somewhere here.
-ghi_obs = 200
+# ghi_obs = 200
 # date_time = pd.datetime(2013, 8, 17, 5, 22)
 # df['time'] = pd.to_datetime(df['time'],unit='m')
-epoch_time = int(time.time())
-current_date = pd.to_datetime(epoch_time, unit='s').round('min')
+# epoch_time = int(time.time())
+# current_date = pd.to_datetime(epoch_time, unit='s').round('min')
 
 
 # current_time = pd.Timestamp.now(tz='US/Mountain').round('min')
@@ -153,15 +181,6 @@ def the_forecast(ghi_obs, current_date):
 
     ext_data = get_extra_radiation(valid_time, epoch_year=valid_time.year, method='nrel', solar_constant=1366.1)
 
-    # Run the DISC model to get direct normal irradiance (DNI)
-    # Produces DNI, kt (clearness index), and an airmass value
-    #    dni = disc(valid_obs[0], zenith[0], valid_time, pressure)
-    dni = erbs(valid_obs[0], zenith[0], doy_fraction)
-    actual_dni = dni['dni']
-
-    # We now have the information to setup the clear-sky GHI model. This is the
-    # final step before getting the actual forecast.
-
     # Calculate relative and absolute airmass
     ghi_r_airmass = get_relative_airmass(apparent_zenith, model='kasten1966')
     ghi_a_airmass = get_absolute_airmass(ghi_r_airmass, pressure=pressure)
@@ -173,10 +192,20 @@ def the_forecast(ghi_obs, current_date):
     # Ineichen-Perez clear-sky GHI model
     cs_ineichen_perez = ineichen(apparent_zenith, airmass_absolute=ghi_a_airmass, linke_turbidity=kasten_linke2,
                                  altitude=altitude, dni_extra=ext_data)
-    #cs_ineichen_perez['direct_horizontal'] = cs_ineichen_perez['dni'] * np.cos(np.radians(apparent_zenith))
 
     clearsky_ghi = cs_ineichen_perez['ghi']
     clearsky_dni = cs_ineichen_perez['dni']
+
+    # Do a last dummy check to make sure the GHI observation is valid.
+    if (valid_obs[0] < 0):
+        valid_obs[0] = clearsky_ghi[0]
+    elif (valid_obs[0] > ext_data[0]):
+        valid_obs[0] = ext_data[0]
+
+    # Run the ERBS model to get direct normal irradiance (DNI)
+    # Produces DNI, kt (clearness index), and an airmass value
+    dni = erbs(valid_obs[0], zenith[0], doy_fraction)
+    actual_dni = dni['dni']
 
     # Calculate future solar zenith angle
     # Need to calculate a future SZA.
@@ -204,41 +233,44 @@ def the_forecast(ghi_obs, current_date):
 # print(str(ghi_forecast_final[0]))
 
 if __name__ == '__main__':
+    # ghi_obs = 200
+    # epoch_time = 1357140600
+    # current_date = pd.to_datetime(epoch_time, unit='s').round('min')
+    # print(current_date)
+    # ghi_forecast_final = the_forecast(ghi_obs, current_date)
+    # print(str(ghi_forecast_final[0]))
+    #
+    #
+    # ghi_obs = 200
+    # # date_time = pd.datetime(2013, 8, 17, 5, 22)
+    # # df['time'] = pd.to_datetime(df['time'],unit='m')
+    # epoch_time = int(time.time())
+    # current_date = pd.to_datetime(epoch_time, unit='s').round('min')
+    # ghi_forecast_final = the_forecast(ghi_obs, current_date)
+    # print(str(ghi_forecast_final[0]))
+    #
+    #
+    # ghi_obs = 200
+    # # date_time = pd.datetime(2013, 8, 17, 5, 22)
+    # # df['time'] = pd.to_datetime(df['time'],unit='m')
+    # epoch_time = int(time.time()) + 60
+    # print(epoch_time)
+    # current_date = pd.to_datetime(epoch_time, unit='s').round('min')
+    # print(current_date)
+    # ghi_forecast_final = the_forecast(ghi_obs, current_date)
+    # print(str(ghi_forecast_final[0]))
+    #
     ghi_obs = 200
-    epoch_time = 1357140600
+    # # date_time = pd.datetime(2013, 8, 17, 5, 22)
+    # # df['time'] = pd.to_datetime(df['time'],unit='m')
+    # epoch_time = int(time.time()) + 3600
+    # # 1543859977
+    # epoch_time = 1357048800 + 3600 * 2
+
+    epoch_time = 1374394442
+    epoch_time = int(datetime.utcfromtimestamp(epoch_time).replace(tzinfo=tz.gettz('US/Mountain')).timestamp())
     current_date = pd.to_datetime(epoch_time, unit='s').round('min')
-    print(current_date)
-    ghi_forecast_final = the_forecast(ghi_obs, current_date)
-    print(str(ghi_forecast_final[0]))
 
-
-    ghi_obs = 200
-    # date_time = pd.datetime(2013, 8, 17, 5, 22)
-    # df['time'] = pd.to_datetime(df['time'],unit='m')
-    epoch_time = int(time.time())
-    current_date = pd.to_datetime(epoch_time, unit='s').round('min')
-    ghi_forecast_final = the_forecast(ghi_obs, current_date)
-    print(str(ghi_forecast_final[0]))
-
-
-    ghi_obs = 200
-    # date_time = pd.datetime(2013, 8, 17, 5, 22)
-    # df['time'] = pd.to_datetime(df['time'],unit='m')
-    epoch_time = int(time.time()) + 60
-    print(epoch_time)
-    current_date = pd.to_datetime(epoch_time, unit='s').round('min')
-    print(current_date)
-    ghi_forecast_final = the_forecast(ghi_obs, current_date)
-    print(str(ghi_forecast_final[0]))
-
-    ghi_obs = 200
-    # date_time = pd.datetime(2013, 8, 17, 5, 22)
-    # df['time'] = pd.to_datetime(df['time'],unit='m')
-    epoch_time = int(time.time()) + 3600
-    # 1543859977
-    epoch_time = 1357048800 + 3600 * 2
-    epoch_time = 1357115400
-    current_date = pd.to_datetime(epoch_time, unit='s').round('min')
     print(current_date)
     ghi_forecast_final = the_forecast(ghi_obs, current_date)
     print(str(ghi_forecast_final[0]))

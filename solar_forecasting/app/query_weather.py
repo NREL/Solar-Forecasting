@@ -21,29 +21,22 @@ weather_channel = 'goss.gridappsd.process.request.data.timeseries'
 
 def query_weather(start_time, end_time):
     query = {"queryMeasurement":"weather",
-             "queryFilter":{"startTime":"1357048800000000",
-                            "endTime":"1357048860000000"},
-                            "responseFormat":"JSON"}
-
-    query = {"queryMeasurement":"weather",
             "queryFilter":{"startTime":"1357048800000000",
                             "endTime":"1357058860000000"},
                             "responseFormat":"JSON"}
     query['queryFilter']['startTime'] = start_time
     query['queryFilter']['endTime'] = end_time
 
-    #1357058860000000
-    # results = gridappsd_obj.query_data(query)
+    weather_results = gridappsd_obj.get_response(weather_channel, query, timeout=120)
 
-    weather_results = gridappsd_obj.get_response(weather_channel, query, timeout=10)
-    # print(weather_results)
-    time_dict = {}
-    for row in weather_results['data']['measurements'][0]['points']:
-        temp = {entry['key']: entry['value'] for entry in row['row']['entry']}
-        time_dict[int(temp['time'])] = temp
+    if 'error' in weather_results and len(weather_results['error']['message']) > 1:
+        return None
+    time_dict = {int(row['time']): row for row in weather_results['data']}
+    # time_dict = {}
+    # for row in weather_results['data']:
+    #     time_dict[int(row['time'])] = row
 
     weather_df = pd.DataFrame(time_dict).T
-    # weather_df.iloc[[0, 10]]['GlobalCM22']
     return weather_df
 
 if __name__ == '__main__':

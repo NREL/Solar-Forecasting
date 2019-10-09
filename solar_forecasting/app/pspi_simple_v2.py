@@ -31,6 +31,8 @@ from sklearn.metrics import *
 from scipy import stats
 from datetime import datetime
 import time
+from time import strptime, strftime, mktime, gmtime
+from calendar import timegm
 
 
 def valid_datetime(date_time):
@@ -181,6 +183,7 @@ def time_to_forecast(sunrise, sunset, valid_time, timezone):
         adj_sunrise = pd.DatetimeIndex(sunrise).tz_localize(timezone)
         adj_sunset = pd.DatetimeIndex(sunset).tz_localize(timezone)
         adj_time = valid_time.tz_localize(timezone)
+    print(adj_sunrise,adj_time, adj_sunset)
     if (adj_sunrise <= adj_time < adj_sunset):
         to_forecast = True
     else:
