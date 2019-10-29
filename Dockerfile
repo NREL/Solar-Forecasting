@@ -1,11 +1,21 @@
 # Use the base application container to allow the application to be controlled
 # from the gridappsd container.
-FROM gridappsd/app-container-base
+FROM gridappsd/app-container-base:develop
+
+# Add the TIMESTAMP variable to capture the build information from
+# the travis docker build command and add them to the image.
+ARG TIMESTAMP
+RUN echo $TIMESTAMP > /dockerbuildversion.txt
 
 # Pick a spot to put our application code
 # (note gridappsd-python is located at /usr/src/gridappsd-python)
 # and is already installed in the app-container-base environment.
 WORKDIR /usr/src/gridappsd-solar-forecasting
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y git && \
+    apt-get install -y procps
 
 # Add dependencies to the requirements.txt file before
 # uncommenting the next two lines
