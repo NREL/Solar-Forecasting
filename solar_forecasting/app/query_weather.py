@@ -24,8 +24,8 @@ def query_weather(start_time, end_time):
             "queryFilter":{"startTime":"1357048800000000",
                             "endTime":"1357058860000000"},
                             "responseFormat":"JSON"}
-    query['queryFilter']['startTime'] = start_time
-    query['queryFilter']['endTime'] = end_time
+    query['queryFilter']['startTime'] = str(start_time)
+    query['queryFilter']['endTime'] = str(end_time)
 
     weather_results = gridappsd_obj.get_response(weather_channel, query, timeout=120)
 
