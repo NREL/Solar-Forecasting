@@ -101,7 +101,7 @@ class Solar_Forecast(object):
         self._run_freq = app_config.get('run_freq', 30)
         self._run_realtime = app_config.get('run_realtime', True)
         self._port = '9002'
-        print(self._port )
+        print(self._port)
         self._weather_df = None
         # self._weather_df = query_weather.query_weather(self._start_time,self._end_time)
 
@@ -113,7 +113,7 @@ class Solar_Forecast(object):
         self._result_csv = ResultCSV()
         self._result_csv.create_result_folder(self.resFolder)
         self._result_csv.create_result_file(self.resFolder, 'result.csv', 'second,epoch time,GHI,forecast time,Forecast GHI')
-
+        _log.info('create folders')
         # self.create_result_file(self.resFolder)
         # self._results, self._res_csvfile, self._results_writer = self.create_result_file(self.resFolder, 'second,epoch time,GHI,forecast time,Forecast GHI')
 
@@ -127,7 +127,7 @@ class Solar_Forecast(object):
         time.sleep(.3)
         signal.signal(signal.SIGTERM, self.signal_handler)
         signal.signal(signal.SIGINT, self.signal_handler)
-
+        _log.info('skt')
         obj = dict(first=dict(first=1, time=1))
         jobj = json.dumps(obj).encode('utf8')
         zobj = zlib.compress(jobj)
@@ -210,11 +210,13 @@ class Solar_Forecast(object):
             of ``GridAPPSD``.  Most message payloads will be serialized dictionaries, but that is
             not a requirement.
         """
-
-
-        print(message[:200])
-        _log.info(message[:200])
-        self._send_simulation_status('STARTED', "Rec message " + message[:200], 'INFO')
+        _log.info('msg')
+        _log.info(type(message))
+        _log.info(str(message)[:100])
+        # print(type(message))
+        # print(message[:200])
+        # _log.info(message[:200])
+        # self._send_simulation_status('STARTED', "Rec message " + message[:200], 'INFO')
         if message == '{}':
             return
         if headers['destination'].startswith('/topic/goss.gridappsd.simulation.log.'+str(self.simulation_id)):
@@ -224,9 +226,9 @@ class Solar_Forecast(object):
                 self.signal_handler(None, None)
             return
         # print(message)
-        print(message[:100])
-
-        message = json.loads(message)
+        # print(message[:100])
+        #
+        # message = json.loads(message)
 
         if not message['message']['measurements']:
             print("Measurements is empty")
@@ -410,7 +412,6 @@ def _main():
                         help="Simulation Request")
     parser.add_argument("opt",
                         help="opt")
-    # parser.add_argument("opt", help="opt")
     opts = parser.parse_args()
     _log.info(opts)
     listening_to_topic = simulation_output_topic(opts.simulation_id)
@@ -439,6 +440,7 @@ def _main():
     gapps = GridAPPSD(opts.simulation_id, address=utils.get_gridappsd_address(),
                       username=utils.get_gridappsd_user(), password=utils.get_gridappsd_pass())
 
+    print(listening_to_topic)
     # gapps = GridAPPSD(opts.simulation_id)
     solar_forecast = Solar_Forecast(opts.simulation_id, gapps, model_mrid, start_time, app_config)
     gapps.subscribe(listening_to_topic, solar_forecast)
