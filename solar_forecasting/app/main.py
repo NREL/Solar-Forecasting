@@ -410,8 +410,8 @@ def _main():
                         help="Simulation id to use for responses on the message bus.")
     parser.add_argument("request",
                         help="Simulation Request")
-    parser.add_argument("opt",
-                        help="opt")
+    # parser.add_argument("opt",
+    #                     help="opt")
     opts = parser.parse_args()
     _log.info(opts)
     listening_to_topic = simulation_output_topic(opts.simulation_id)
